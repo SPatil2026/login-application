@@ -1,0 +1,11 @@
+
+services:
+  frontend:
+    image: samdox/frontend:latest
+    container_name: frontend
+    networks:
+      - sam-network
+
+networks:
+  sam-network:
+    external: true

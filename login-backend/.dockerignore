@@ -1,0 +1,27 @@
+# Node modules (installed inside the container)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Environment variables (never include secrets in the image)
+.env
+
+# Build outputs / dist folders
+dist
+build
+
+# Logs
+logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files not needed in the image
+docker-compose*.yml
+
+# IDE/editor files
+.vscode
+.idea
+*.swp

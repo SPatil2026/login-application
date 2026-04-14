@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:17
+    container_name: postgres_db
+    restart: on-failure
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - sam-network
+
+  backend1:
+    image: samdox/backend:latest
+    container_name: backend1
+    restart: on-failure
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - sam-network
+
+  backend2:
+    image: samdox/backend:latest
+    container_name: backend2
+    restart: on-failure
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    depends_on:
+      - db
+    environment:
+      PORT: 8001
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - sam-network
+
+networks:
+  sam-network:
+    external: true
+
+volumes:
+  postgres-data:
