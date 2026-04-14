@@ -43,6 +43,10 @@ pipeline {
         stage('Build Nginx Load Balancer') {
             steps {
                 dir('nginx') {
+                    echo "Generating temporary SSL Certificates for Docker Build..."
+                    sh 'mkdir -p certs'
+                    sh 'openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout certs/login-application.key -out certs/login-application.crt -subj "/CN=login-application.com"'
+                    
                     echo "Building Nginx Proxy Image..."
                     sh 'docker build -t samdox/custom-nginx:latest .'
                 }
