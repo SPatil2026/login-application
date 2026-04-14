@@ -45,7 +45,7 @@ pipeline {
                 dir('nginx') {
                     echo "Generating temporary SSL Certificates for Docker Build..."
                     sh 'mkdir -p certs'
-                    sh 'openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout certs/login-application.key -out certs/login-application.crt -subj "/CN=login-application.com"'
+                    sh 'openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout certs/login-application.key -out certs/login-application.crt -subj "/CN=login-application.com" -addext "subjectAltName=DNS:login-application.com,DNS:localhost,IP:127.0.0.1"'
                     
                     echo "Building Nginx Proxy Image..."
                     sh 'docker build -t samdox/custom-nginx:latest .'
