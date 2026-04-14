@@ -56,14 +56,14 @@ pipeline {
         stage('Deploy Infrastructure') {
             steps {
                 // First, stop existing containers smoothly
-                dir('nginx') { sh 'docker compose down || true' }
-                dir('login-frontend') { sh 'docker compose down || true' }
-                dir('login-backend') { sh 'docker compose down || true' }
+                dir('nginx') { sh 'docker-compose down || true' }
+                dir('login-frontend') { sh 'docker-compose down || true' }
+                dir('login-backend') { sh 'docker-compose down || true' }
                 
                 // Then deploy everything simultaneously using the newly built images
-                dir('login-backend') { sh 'docker compose up -d' }
-                dir('login-frontend') { sh 'docker compose up -d' }
-                dir('nginx') { sh 'docker compose up -d' }
+                dir('login-backend') { sh 'docker-compose up -d' }
+                dir('login-frontend') { sh 'docker-compose up -d' }
+                dir('nginx') { sh 'docker-compose up -d' }
                 
                 echo "🚀 Stack successfully deployed! Zero-Downtime routing active."
             }
