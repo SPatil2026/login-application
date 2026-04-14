@@ -8,7 +8,7 @@ COPY nginx-sticky-module-ng ./nginx-sticky-module-ng
 
 WORKDIR /usr/src/nginx-1.28.0
 
-RUN ./configure \
+RUN chmod -R +x . && ./configure \
     --with-http_ssl_module \
     --with-stream \
     --add-module=/usr/src/nginx-sticky-module-ng \
