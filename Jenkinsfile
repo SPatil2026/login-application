@@ -85,7 +85,11 @@ pipeline {
             echo "Build and Deploy Succeeded!"
         }
         failure {
-            echo "Build failed X"
+            emailext (
+                subject: "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "The build failed. View details here: ${env.BUILD_URL}",
+                recipientProviders: [developers()]
+            )
         }
     }
 }
