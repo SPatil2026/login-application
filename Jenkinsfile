@@ -76,12 +76,12 @@ pipeline {
             echo 'Pipeline Execution Completed.'
         }
         success {
-            mail to: 'samarthp2003@gmail.com',
+            mail to: 't3978713@gmail.com',
                 subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: "The build succeeded. Review the logs at: ${env.BUILD_URL}"
         }
         failure {
-            mail to: 'samarthp2003@gmail.com',
+            mail to: 't3978713@gmail.com',
                 subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: "The build failed. Review the logs at: ${env.BUILD_URL}"
         }
