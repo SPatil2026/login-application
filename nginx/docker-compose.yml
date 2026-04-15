@@ -3,6 +3,11 @@ services:
   nginx:
     image: samdox/custom-nginx:latest
     container_name: nginx
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     ports:
       - "80:80"
       - "443:443"
