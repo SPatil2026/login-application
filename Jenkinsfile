@@ -1,16 +1,12 @@
 pipeline {
     agent any
 
-    environment {
-        NETWORK_NAME = credentials('NETWORK_NAME')
-    }
-
     stages {
         stage('Initialize Environment') {
             steps {
                 script {
-                    ech "Checking if Docker network ${NETWORK_NAME} exists..."
-                    sh "docker network inspect ${NETWORK_NAME} >/dev/null 2>&1 || docker network create ${NETWORK_NAME}"
+                    echo 'Checking if Docker network sam-network exists...'
+                    sh 'docker network inspect sam-network >/dev/null 2>&1 || docker network create sam-network'
                 }
             }
         }
@@ -18,7 +14,7 @@ pipeline {
         stage('Build API Backend') {
             steps {
                 dir('login-backend') {
-                    echo "Building Backend Docker Image..."
+                    echo 'Building Backend Docker Image...'
                     sh 'docker build -t samdox/backend:latest .'
                 }
             }
@@ -27,7 +23,7 @@ pipeline {
         stage('Build React Frontend') {
             steps {
                 dir('login-frontend') {
-                    echo "Building Frontend Docker Image..."
+                    echo 'Building Frontend Docker Image...'
                     sh 'docker build -t samdox/frontend:latest .'
                 }
             }
@@ -36,7 +32,7 @@ pipeline {
         stage('Build Nginx Load Balancer') {
             steps {
                 dir('nginx') {
-                    echo "Building Nginx Proxy Image..."
+                    echo 'Building Nginx Proxy Image...'
                     sh 'docker build -t samdox/custom-nginx:latest .'
                 }
             }
@@ -44,42 +40,40 @@ pipeline {
 
         stage('Deploy Infrastructure') {
             steps {
+                // Gracefully stop any running containers (ignore errors if not running)
                 dir('nginx') { sh 'docker-compose down || true' }
                 dir('login-frontend') { sh 'docker-compose down || true' }
                 dir('login-backend') { sh 'docker-compose down || true' }
 
+                // Inject secrets from Jenkins Credential Vault into .env file
                 withCredentials([
                     string(credentialsId: 'POSTGRES_USER', variable: 'DB_USER'),
                     string(credentialsId: 'POSTGRES_PASSWORD', variable: 'DB_PASS'),
-                    
                     string(credentialsId: 'POSTGRES_DB', variable: 'DB_NAME'),
-                    string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET'),
-                    string(credentialsId: 'PORT', variable: 'DB_PORT')
+                    string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
                 ]) {
                     dir('login-backend') {
                         sh '''
-                            echo "POSTGRES_USER=${DB_USER}" > .env
-                            echo "POSTGRES_PASSWORD=${DB_PASS}" >> .env
-                            echo "POSTGRES_DB=${DB_NAME}" >> .env
-                            echo "JWT_SECRET=${JWT_SECRET}" >> .env
-                            echo "PORT=${DB_PORT}" >> .env
+                            printf 'POSTGRES_USER=%s\n' "$DB_USER" > .env
+                            printf 'POSTGRES_PASSWORD=%s\n' "$DB_PASS" >> .env
+                            printf 'POSTGRES_DB=%s\n' "$DB_NAME" >> .env
+                            printf 'JWT_SECRET=%s\n' "$JWT_SECRET" >> .env
                         '''
-
                         sh 'docker-compose up -d'
                     }
                 }
-                
+
                 dir('login-frontend') { sh 'docker-compose up -d' }
                 dir('nginx') { sh 'docker-compose up -d' }
-                
-                echo "Stack successfully deployed! Zero-Downtime routing active."
+
+                echo 'Stack successfully deployed! Zero-Downtime routing active.'
             }
         }
     }
 
     post {
         always {
-            echo "Pipeline Execution Completed."
+            echo 'Pipeline Execution Completed.'
         }
         success {
             mail to: 'samarthp2003@gmail.com',
