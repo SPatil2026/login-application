@@ -44,9 +44,9 @@ pipeline {
 
         stage('Deploy Infrastructure') {
             steps {
-                dir('nginx') { sh 'docker-compose down' }
-                dir('login-frontend') { sh 'docker-compose down' }
-                dir('login-backend') { sh 'docker-compose down' }
+                dir('nginx') { sh 'docker-compose down || true' }
+                dir('login-frontend') { sh 'docker-compose down || true' }
+                dir('login-backend') { sh 'docker-compose down || true' }
 
                 withCredentials([
                     string(credentialsId: 'POSTGRES_USER', variable: 'DB_USER'),
