@@ -82,11 +82,9 @@ pipeline {
             echo "Pipeline Execution Completed."
         }
         success {
-            emailext (
-                subject: "Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "The build succeeded. View details here: ${env.BUILD_URL}",
-                recipientProviders: [developers(), requestor()]
-            )
+            mail to: 'samarthp2003@gmail.com',
+                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "The build succeeded. Review the logs at: ${env.BUILD_URL}"
         }
         failure {
             mail to: 'samarthp2003@gmail.com',
