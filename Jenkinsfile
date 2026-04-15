@@ -2,21 +2,15 @@ pipeline {
     agent any
 
     environment {
-        NETWORK_NAME = 'sam-network'
+        NETWORK_NAME = credentials('NETWORK_NAME')
     }
 
     stages {
         stage('Initialize Environment') {
             steps {
                 script {
-                    echo "Checking if Docker network '${NETWORK_NAME}' exists..."
-                    def networkExists = sh(script: "docker network ls | grep ${NETWORK_NAME} || true", returnStdout: true).trim()
-                    if (!networkExists) {
-                        echo "Creating network '${NETWORK_NAME}'..."
-                        sh "docker network create ${NETWORK_NAME}"
-                    } else {
-                        echo "Network '${NETWORK_NAME}' already exists."
-                    }
+                    echo "Checking if Docker network ${NETWORK_NAME} exists..."
+                    sh "docker network inspect ${NETWORK_NAME} >/dev/null 2>&1 || docker network create ${NETWORK_NAME}"
                 }
             }
         }
@@ -50,9 +44,9 @@ pipeline {
 
         stage('Deploy Infrastructure') {
             steps {
-                dir('nginx') { sh 'docker-compose down || true' }
-                dir('login-frontend') { sh 'docker-compose down || true' }
-                dir('login-backend') { sh 'docker-compose down || true' }
+                dir('nginx') { sh 'docker-compose down' }
+                dir('login-frontend') { sh 'docker-compose down' }
+                dir('login-backend') { sh 'docker-compose down' }
 
                 withCredentials([
                     string(credentialsId: 'POSTGRES_USER', variable: 'DB_USER'),
@@ -78,7 +72,7 @@ pipeline {
                 dir('login-frontend') { sh 'docker-compose up -d' }
                 dir('nginx') { sh 'docker-compose up -d' }
                 
-                echo "🚀 Stack successfully deployed! Zero-Downtime routing active."
+                echo "Stack successfully deployed! Zero-Downtime routing active."
             }
         }
     }
@@ -88,10 +82,10 @@ pipeline {
             echo "Pipeline Execution Completed."
         }
         success {
-            echo "✅ Build and Deploy Succeeded!"
+            echo "Build and Deploy Succeeded!"
         }
         failure {
-            echo "❌ Pipeline failed! Check the logs for errors."
+            echo "Build failed X"
         }
     }
 }
