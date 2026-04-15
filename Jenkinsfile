@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Defines the network dynamically just in case it doesn't exist
         NETWORK_NAME = 'sam-network'
     }
 
@@ -51,13 +50,31 @@ pipeline {
 
         stage('Deploy Infrastructure') {
             steps {
-                // First, stop existing containers smoothly
                 dir('nginx') { sh 'docker-compose down || true' }
                 dir('login-frontend') { sh 'docker-compose down || true' }
                 dir('login-backend') { sh 'docker-compose down || true' }
+
+                withCredentials([
+                    string(credentialsId: 'POSTGRES_USER', variable: 'DB_USER'),
+                    string(credentialsId: 'POSTGRES_PASSWORD', variable: 'DB_PASS'),
+                    
+                    string(credentialsId: 'POSTGRES_DB', variable: 'DB_NAME'),
+                    string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET'),
+                    string(credentialsId: 'PORT', variable: 'DB_PORT')
+                ]) {
+                    dir('login-backend') {
+                        sh '''
+                            echo "POSTGRES_USER=${DB_USER}" > .env
+                            echo "POSTGRES_PASSWORD=${DB_PASS}" >> .env
+                            echo "POSTGRES_DB=${DB_NAME}" >> .env
+                            echo "JWT_SECRET=${JWT_SECRET}" >> .env
+                            echo "PORT=${DB_PORT}" >> .env
+                        '''
+
+                        sh 'docker-compose up -d'
+                    }
+                }
                 
-                // Then deploy everything simultaneously using the newly built images
-                dir('login-backend') { sh 'docker-compose up -d' }
                 dir('login-frontend') { sh 'docker-compose up -d' }
                 dir('nginx') { sh 'docker-compose up -d' }
                 
