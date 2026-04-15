@@ -89,11 +89,9 @@ pipeline {
             )
         }
         failure {
-            emailext (
-                subject: "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "The build failed. View details here: ${env.BUILD_URL}",
-                recipientProviders: [developers(), requestor()]
-            )
+            mail to: 'samarthp2003@gmail.com',
+                subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "The build failed. Review the logs at: ${env.BUILD_URL}"
         }
     }
 }
