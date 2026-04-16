@@ -70,7 +70,7 @@ function App() {
         <div className="bg-white p-8 rounded-2xl shadow-xl text-center w-full max-w-md">
           <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">👋</div>
           <h2 className="text-2xl font-bold text-gray-800">{welcomeMsg}</h2>
-          <p className="text-gray-500 mt-2 mb-8 text-sm">You are successfully authenticated.</p>
+          <p className="text-gray-500 mt-2 mb-8 text-sm">{welcomeMsg} are successfully authenticated.</p>
           <button
             onClick={handleLogout}
             className="w-full bg-red-50 text-red-600 font-semibold py-3 rounded-xl hover:bg-red-100 transition"
