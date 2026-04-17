@@ -20,13 +20,14 @@ services:
       - sam-network
 
   proxysql:
-    image: proxysql/proxysql:latest
+    build:
+      context: .
+      dockerfile: proxysql.Dockerfile
     container_name: proxysql
     ports:
       - "6133:6133"
       - "6132:6132"
     volumes:
-      - ./proxysql.cnf:/etc/proxysql.cnf:ro
       - proxysql-data:/var/lib/proxysql
     depends_on:
       - db
