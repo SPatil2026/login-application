@@ -54,6 +54,16 @@ pipeline {
                 ]) {
                     dir('login-backend') {
                         sh '''
+                            # 1. If proxysql.cnf is secretly a directory created by Docker, delete it!
+                            if [ -d "proxysql.cnf" ]; then 
+                                echo "Found a ghost directory! Deleting it..."
+                                rm -rf proxysql.cnf
+                                git checkout proxysql.cnf || true
+                            fi
+                            
+                            # 2. Print out the directory contents to prove the file is actually there
+                            ls -la
+                            
                             printf 'POSTGRES_USER=%s\n' "$DB_USER" > .env
                             printf 'POSTGRES_PASSWORD=%s\n' "$DB_PASS" >> .env
                             printf 'POSTGRES_DB=%s\n' "$DB_NAME" >> .env
