@@ -54,6 +54,8 @@ pipeline {
                 ]) {
                     dir('login-backend') {
                         sh '''
+                            sed -i "s/admin:admin/$PROXY_USER:$PROXY_PASS/g" proxysql.cnf
+
                             printf 'POSTGRES_USER=%s\n' "$DB_USER" > .env
                             printf 'POSTGRES_PASSWORD=%s\n' "$DB_PASS" >> .env
                             printf 'POSTGRES_DB=%s\n' "$DB_NAME" >> .env
