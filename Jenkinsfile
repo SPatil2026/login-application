@@ -50,7 +50,9 @@ pipeline {
                     string(credentialsId: 'POSTGRES_USER', variable: 'DB_USER'),
                     string(credentialsId: 'POSTGRES_PASSWORD', variable: 'DB_PASS'),
                     string(credentialsId: 'POSTGRES_DB', variable: 'DB_NAME'),
-                    string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
+                    string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET'),
+                    string(credentialsId: 'PROXYSQL_ADMIN_USER', variable: 'PROXY_USER'),
+                    string(credentialsId: 'PROXYSQL_ADMIN_PASS', variable: 'PROXY_PASS')
                 ]) {
                     dir('login-backend') {
                         sh '''
