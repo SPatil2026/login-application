@@ -19,6 +19,20 @@ services:
     networks:
       - sam-network
 
+  proxysql:
+    image: proxysql/proxysql:latest
+    container_name: proxysql
+    ports:
+      - "6133:6133"
+      - "6132:6132"
+    volumes:
+      - ./proxysql.cnf:/etc/proxysql.cnf:ro
+      - proxysql-data:/var/lib/proxysql
+    depends_on:
+      - db
+    networks:
+      - sam-network
+
   backend1:
     image: samdox/backend:latest
     container_name: backend1
@@ -29,11 +43,9 @@ services:
           cpus: '0.5'
           memory: 512M
     depends_on:
-      - db
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - proxysql
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:6133/${POSTGRES_DB}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@proxysql:6133/${POSTGRES_DB}?schema=public
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - sam-network
@@ -48,12 +60,10 @@ services:
           cpus: '0.5'
           memory: 512M
     depends_on:
-      - db
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - proxysql
     environment:
       PORT: 8001
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:6133/${POSTGRES_DB}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@proxysql:6133/${POSTGRES_DB}?schema=public
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - sam-network
@@ -64,3 +74,4 @@ networks:
 
 volumes:
   postgres-data:
+  proxysql-data:
