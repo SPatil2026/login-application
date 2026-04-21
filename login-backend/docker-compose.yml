@@ -8,11 +8,14 @@ services:
         limits:
           cpus: '0.5'
           memory: 512M
-    restart: on-failure
-    deploy:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@proxysql:6133/${POSTGRES_DB}?schema=public
       JWT_SECRET: ${JWT_SECRET}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - sam-network
 
@@ -25,12 +28,15 @@ services:
         limits:
           cpus: '0.5'
           memory: 512M
-    restart: on-failure
-    deploy:
     environment:
       PORT: 8001
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@proxysql:6133/${POSTGRES_DB}?schema=public
       JWT_SECRET: ${JWT_SECRET}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - sam-network
 

@@ -74,17 +74,7 @@ pipeline {
                             printf 'JWT_SECRET=%s\n' "$JWT_SECRET" >> .env
                         '''
                         
-                        echo 'Applying update to Backend 1...'
-                        sh 'docker-compose up -d --no-deps backend1'
-                        
-                        echo 'Waiting for Backend 1 to stabilize (15s)...'
-                        sleep time: 15, unit: 'SECONDS'
-                        
-                        echo 'Applying update to Backend 2...'
-                        sh 'docker-compose up -d --no-deps backend2'
-                        
-                        echo 'Waiting for Backend 2 to stabilize (15s)...'
-                        sleep time: 15, unit: 'SECONDS'
+                        sh 'docker-compose up -d'
                     }
                 }
 
