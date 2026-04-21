@@ -40,11 +40,6 @@ pipeline {
 
         stage('Deploy Infrastructure') {
             steps {
-                // Gracefully stop any running containers (ignore errors if not running)
-                dir('nginx') { sh 'docker-compose down || true' }
-                dir('login-frontend') { sh 'docker-compose down || true' }
-                dir('login-backend') { sh 'docker-compose down || true' }
-
                 // Inject secrets from Jenkins Credential Vault into .env file
                 withCredentials([
                     string(credentialsId: 'POSTGRES_USER', variable: 'DB_USER'),
@@ -54,23 +49,47 @@ pipeline {
                     string(credentialsId: 'PROXYSQL_ADMIN_USER', variable: 'PROXY_USER'),
                     string(credentialsId: 'PROXYSQL_ADMIN_PASS', variable: 'PROXY_PASS')
                 ]) {
-                    dir('login-backend') {
+                    // Part 1: Deploy Database and ProxySQL
+                    dir('db') {
+                        echo 'Configuring ProxySQL and DB Environment...'
                         sh '''
                             sed -i "s/admin:admin/$PROXY_USER:$PROXY_PASS/g" proxysql.cnf
 
                             printf 'POSTGRES_USER=%s\n' "$DB_USER" > .env
                             printf 'POSTGRES_PASSWORD=%s\n' "$DB_PASS" >> .env
                             printf 'POSTGRES_DB=%s\n' "$DB_NAME" >> .env
-                            printf 'JWT_SECRET=%s\n' "$JWT_SECRET" >> .env
                         '''
                         sh 'docker-compose up -d'
+                    }
+
+                    // Part 2: Sequential Rolling Update for Backends
+                    dir('login-backend') {
+                        echo 'Configuring Backend Environment...'
+                        sh '''
+                            printf 'POSTGRES_USER=%s\n' "$DB_USER" > .env
+                            printf 'POSTGRES_PASSWORD=%s\n' "$DB_PASS" >> .env
+                            printf 'POSTGRES_DB=%s\n' "$DB_NAME" >> .env
+                            printf 'JWT_SECRET=%s\n' "$JWT_SECRET" >> .env
+                        '''
+                        
+                        echo 'Applying update to Backend 1...'
+                        sh 'docker-compose up -d --no-deps backend1'
+                        
+                        echo 'Waiting for Backend 1 to stabilize (15s)...'
+                        sleep time: 15, unit: 'SECONDS'
+                        
+                        echo 'Applying update to Backend 2...'
+                        sh 'docker-compose up -d --no-deps backend2'
+                        
+                        echo 'Waiting for Backend 2 to stabilize (15s)...'
+                        sleep time: 15, unit: 'SECONDS'
                     }
                 }
 
                 dir('login-frontend') { sh 'docker-compose up -d' }
                 dir('nginx') { sh 'docker-compose up -d' }
 
-                echo 'Stack successfully deployed! Zero-Downtime routing active.'
+                echo 'Stack successfully deployed! Zero-Downtime backend update complete with split infra.'
             }
         }
     }
