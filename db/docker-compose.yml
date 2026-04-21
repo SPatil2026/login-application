@@ -40,4 +40,8 @@ networks:
 
 volumes:
   postgres-data:
+    external: true
+    name: login-backend_postgres-data
   proxysql-data:
+    external: true
+    name: login-backend_proxysql-data
