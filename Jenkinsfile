@@ -40,6 +40,12 @@ pipeline {
 
         stage('Deploy Infrastructure') {
             steps {
+                // Gracefully stop any running containers (ignore errors if not running)
+                dir('nginx') { sh 'docker-compose down || true' }
+                dir('login-frontend') { sh 'docker-compose down || true' }
+                dir('login-backend') { sh 'docker-compose down || true' }
+                dir('db') { sh 'docker-compose down || true' }
+
                 // Inject secrets from Jenkins Credential Vault into .env file
                 withCredentials([
                     string(credentialsId: 'POSTGRES_USER', variable: 'DB_USER'),
