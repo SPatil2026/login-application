@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import morgan from "morgan";
 
 process.on("uncaughtException", (err) => {
     console.error("UNCAUGHT EXCEPTION! 💥 Shutting down...");
@@ -24,6 +25,7 @@ dotenv.config();
 
 const app = express();
 
+app.use(morgan("dev"));
 app.use(helmet());
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));

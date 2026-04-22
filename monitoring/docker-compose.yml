@@ -64,9 +64,37 @@ services:
     networks:
       - sam-network
 
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    user: "root"
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_data:/tmp/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    networks:
+      - sam-network
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml:ro
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    networks:
+      - sam-network
+
 volumes:
   prometheus_data:
   grafana_data:
+  loki_data:
 
 networks:
   sam-network:
