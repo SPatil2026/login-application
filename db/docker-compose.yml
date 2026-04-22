@@ -31,7 +31,7 @@ services:
       - proxysql-data:/var/lib/proxysql
     depends_on:
       - db
-    command: [ "proxysql", "-f", "/etc/proxysql.cnf", "--reload" ]
+    command: [ "proxysql", "-f", "/etc/proxysql.cnf", "--initial" ]
     networks:
       - sam-network
 
