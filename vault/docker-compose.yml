@@ -1,0 +1,10 @@
+services:
+  vault:
+    image: hashicorp/vault:latest
+    container_name: dev-vault
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=myroot
+      - SKIP_SETCAP=true
+    restart: unless-stopped

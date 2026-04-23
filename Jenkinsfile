@@ -41,26 +41,28 @@ pipeline {
         stage('Deploy Infrastructure') {
             steps {
 
-                // Inject secrets from Jenkins Credential Vault into .env file
-                withCredentials([
-                    string(credentialsId: 'POSTGRES_USER', variable: 'DB_USER'),
-                    string(credentialsId: 'POSTGRES_PASSWORD', variable: 'DB_PASS'),
-                    string(credentialsId: 'POSTGRES_DB', variable: 'DB_NAME'),
-                    string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET'),
-                    string(credentialsId: 'PROXYSQL_ADMIN_USER', variable: 'PROXY_USER'),
-                    string(credentialsId: 'PROXYSQL_ADMIN_PASS', variable: 'PROXY_PASS')
+                withVault(vaultSecrets: [
+                    [path: 'secret/postgres', secretValues: [
+                        [envVar: 'DB_USER', vaultKey: 'username'],
+                        [envVar: 'DB_PASS', vaultKey: 'password'],
+                        [envVar: 'DB_NAME', vaultKey: 'database']
+                    ]],
+                    [path: 'secret/proxysql', secretValues: [
+                        [envVar: 'PROXY_USER', vaultKey: 'username'],
+                        [envVar: 'PROXY_PASS', vaultKey: 'password']
+                    ]],
+                    [path: 'secret/backend', secretValues: [
+                        [envVar: 'JWT_SECRET', vaultKey: 'secret']
+                    ]]
                 ]) {
                     // Part 1: Deploy Database and ProxySQL
                     dir('db') {
                         echo 'Configuring ProxySQL and DB Environment...'
                         sh '''
-                            sed -i "s/admin:admin/$PROXY_USER:$PROXY_PASS/g" proxysql.cnf
-
                             printf 'POSTGRES_USER=%s\n' "$DB_USER" > .env
                             printf 'POSTGRES_PASSWORD=%s\n' "$DB_PASS" >> .env
                             printf 'POSTGRES_DB=%s\n' "$DB_NAME" >> .env
                         '''
-                        sh 'docker rm -f postgres_db proxysql || true'
                         sh 'docker-compose up -d'
                     }
 
