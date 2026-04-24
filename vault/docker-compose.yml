@@ -4,12 +4,7 @@ services:
     container_name: dev-vault
     ports:
       - "8200:8200"
-    volumes:
-      - hashivault:/vault/data
     environment:
       - VAULT_DEV_ROOT_TOKEN_ID=myroot
       - SKIP_SETCAP=true
     restart: unless-stopped
-    
-volumes:
-  hashivault:
