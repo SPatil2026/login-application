@@ -1,0 +1,68 @@
+services:
+  elasticsearch:
+    image: elasticsearch:9.3.3
+    container_name: elasticsearch
+    restart: always
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data/
+    environment:
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    networks:
+      - sam-network
+
+  logstash:
+    image: logstash:9.3.3
+    container_name: logstash
+    restart: always
+    volumes:
+      - ./logstash/:/logstash_dir
+    command: logstash -f /logstash_dir/logstash.conf
+    depends_on:
+      - elasticsearch
+    ports:
+      - '9600:9600'
+      - '5044:5044'
+    environment:
+      LS_JAVA_OPTS: "-Xms512m -Xmx512m"
+    networks:
+      - sam-network
+
+  filebeat:
+    image: elastic/filebeat:8.19.14
+    container_name: filebeat
+    user: root
+    restart: always
+    command: filebeat -e --strict.perms=false
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    networks:
+      - sam-network
+    depends_on:
+      - logstash
+    
+  kibana:
+    image: kibana:9.3.3
+    container_name: kibana
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - sam-network
+    ports:
+      - '5601:5601'
+
+volumes:
+  elastic_data:
+
+networks:
+  sam-network:
+    external: true
