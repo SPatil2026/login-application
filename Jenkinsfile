@@ -63,7 +63,10 @@ pipeline {
                             printf 'POSTGRES_PASSWORD=%s\n' "$DB_PASS" >> .env
                             printf 'POSTGRES_DB=%s\n' "$DB_NAME" >> .env
                         '''
-                        sh 'docker-compose up -d'
+                        sh 'docker-compose down'
+                        sh 'docker volume rm login-backend_proxysql-data || true'
+                        sh 'docker volume create login-backend_proxysql-data'
+                        sh 'docker-compose up -d --build'
                     }
 
                     // Part 2: Sequential Rolling Update for Backends
