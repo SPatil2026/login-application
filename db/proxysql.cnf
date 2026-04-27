@@ -36,10 +36,4 @@ pgsql_users =
               default_hostgroup = 1
               active = 1
       }
-      {
-        username = "sana" 
-        password = "Connect360" 
-        default_hostgroup = 1
-        active = 1
-      }
 )
